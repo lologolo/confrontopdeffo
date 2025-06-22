@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Similarity Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #121212;
+            --bg-card: #1e1e1e;
+            --bg-header: #1a1a1a;
+            --bg-overlay: rgba(0, 0, 0, 0.7);
+            --text-primary: #FFFFFF;
+            --text-secondary: #b0b0b0;
+            --accent: #4A90E2;
+            --accent-hover: #3a7bc8;
+            --remove: rgba(255, 80, 80, 0.3);
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 15px;
+            height: calc(100vh - 30px);
+        }
+
+        /* Header compatto */
+        header {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            background-color: var(--bg-header);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            background: var(--accent);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            justify-content: center;
+        }
+
+        .header-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 20px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: rgba(74, 144, 226, 0.1);
+        }
+
+        .btn-remove {
+            background: rgba(255, 80, 80, 0.15);
+            border: 1px solid rgba(255, 80, 80, 0.5);
+        }
+
+        .btn-remove:hover {
+            background: rgba(255, 80, 80, 0.25);
+        }
+
+        .btn-analyze {
+            background: #9c27b0;
+        }
+
+        .btn-analyze:hover {
+            background: #7b1fa2;
+        }
+
+        /* Layout principale compatto */
+        .main-content {
+            display: grid;
+            grid-template-columns: minmax(300px, 1fr) minmax(600px, 2fr);
+            gap: 15px;
+            height: 100%;
+        }
+
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .card-header {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Controlli compatti */
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .analysis-controls {
+            background: rgba(74, 144, 226, 0.1);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .threshold-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .threshold-value {
+            min-width: 40px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--accent);
+            font-size: 14px;
+        }
+
+        .slider-container {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #444;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Tabella compatta con scroll */
+        .table-container {
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .table-scroll {
+            overflow-y: auto;
+            max-height: calc(100vh - 400px);
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead {
+            background: #2a2a2a;
+            position: sticky;
+            top: 0;
+        }
+
+        th {
+            padding: 10px;
+            text-align: left;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition);
+        }
+
+        th:hover {
+            color: var(--text-primary);
+            background: #333;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #333;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #2a2a2a;
+        }
+
+        tbody tr.selected {
+            background: rgba(74, 144, 226, 0.2);
+        }
+
+        td {
+            padding: 10px;
+            position: relative;
+        }
+
+        .checkbox-cell {
+            width: 20px;
+            padding-right: 0;
+        }
+
+        .checkbox-cell input {
+            cursor: pointer;
+        }
+
+        .similarity-high {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .similarity-medium {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        .similarity-low {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
+
+        /* Anteprime affiancate orizzontalmente */
+        .previews-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .previews-row {
+            display: flex;
+            gap: 15px;
+            height: 50%;
+            min-height: 300px;
+        }
+
+        .preview-box {
+            background: #1a1a1a;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            padding: 10px 15px;
+            background: #2a2a2a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .preview-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            padding: 15px;
+            position: relative;
+        }
+
+        .canvas-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--remove);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            opacity: 0;
+            transition: var(--transition);
+            pointer-events: none;
+        }
+
+        .preview-overlay.visible {
+            opacity: 1;
+        }
+
+        .preview-overlay i {
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            display: block;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-overlay);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--accent);
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            color: var(--text-primary);
+        }
+
+        .page-count {
+            background: var(--accent);
+            color: white;
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .empty-state i {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .similarity-indicator {
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            margin-top: 3px;
+            overflow: hidden;
+        }
+
+        .similarity-progress {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+                height: calc(100vh - 20px);
+            }
+            
+            header {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+            }
+            
+            .header-stats {
+                justify-content: space-around;
+                width: 100%;
+                margin-top: 10px;
+            }
+            
+            .controls-row, .analysis-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .threshold-control {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .previews-row {
+                flex-direction: column;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">PDF</div>
+                <h1>PDF Similarity Analyzer</h1>
+            </div>
+            
+            <div class="header-stats">
+                <div class="header-stat">
+                    <div class="stat-value" id="totalPages">0</div>
+                    <div class="stat-label">Pagine</div>
+                </div>
+                <div class="header-stat">
+                    <div class="stat-value" id="duplicatePairs">0</div>
+                    <div class="stat-label">Coppie simili</div>
+                </div>
+                <div class="header-stat">
+                    <div class="stat-value" id="pagesToRemove">0</div>
+                    <div class="stat-label">Da rimuovere</div>
+                </div>
+            </div>
+            
+            <button id="exportButton" class="btn" disabled>
+                <i class="fas fa-download"></i> Esporta PDF
+            </button>
+        </header>
+
+        <div class="main-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Controlli</h2>
+                </div>
+                
+                <div class="controls-row">
+                    <button id="uploadBtn" class="btn">
+                        <i class="fas fa-file-upload"></i> Carica PDF
+                    </button>
+                    <input type="file" id="fileInput" accept=".pdf" style="display: none;">
+                </div>
+                
+                <div class="analysis-controls">
+                    <div class="threshold-control">
+                        <label for="thresholdSlider">Soglia di similarità:</label>
+                        <div class="slider-container">
+                            <input type="range" min="1" max="100" value="85" class="slider" id="thresholdSlider">
+                        </div>
+                        <div class="threshold-value" id="thresholdValue">85%</div>
+                    </div>
+                    <button id="analyzeBtn" class="btn btn-analyze" disabled>
+                        <i class="fas fa-search"></i> Analizza
+                    </button>
+                </div>
+                
+                <div class="controls-row">
+                    <button id="selectCol1" class="btn btn-outline" disabled>
+                        <i class="fas fa-check-square"></i> Colonna 1
+                    </button>
+                    <button id="selectCol2" class="btn btn-outline" disabled>
+                        <i class="fas fa-check-square"></i> Colonna 2
+                    </button>
+                    <button id="resetBtn" class="btn btn-remove">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+                
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Risultati</h3>
+                        <div class="page-count" id="duplicateCount">0 elementi</div>
+                    </div>
+                    
+                    <div class="table-scroll">
+                        <table id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th data-sort="page1">Pagina 1</th>
+                                    <th></th>
+                                    <th data-sort="page2">Pagina 2</th>
+                                    <th data-sort="similarity">Similarità</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr class="empty-row">
+                                    <td colspan="5">
+                                        <div class="empty-state">
+                                            <i class="fas fa-search"></i>
+                                            <div>Carica e analizza un documento</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h2>Anteprime</h2>
+                </div>
+                
+                <div class="previews-container">
+                    <div class="previews-row">
+                        <div class="preview-box">
+                            <div class="preview-header">
+                                <div>Pagina 1</div>
+                                <div id="preview1Status"></div>
+                            </div>
+                            <div class="preview-content" id="preview1">
+                                <div class="empty-state">
+                                    <i class="fas fa-file-image"></i>
+                                    <div>Seleziona una riga</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="preview-box">
+                            <div class="preview-header">
+                                <div>Pagina 2</div>
+                                <div id="preview2Status"></div>
+                            </div>
+                            <div class="preview-content" id="preview2">
+                                <div class="empty-state">
+                                    <i class="fas fa-file-image"></i>
+                                    <div>Seleziona una riga</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>PDF Similarity Analyzer &copy; 2023</p>
+        </footer>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Analisi in corso...</div>
+        <div id="progressText" style="margin-top: 10px; font-size: 14px;">0% completato</div>
+    </div>
+    
+    <script>
+        // Configurazione pdf.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
+        
+        // Stato dell'applicazione
+        const state = {
+            pdfDoc: null,
+            totalPages: 0,
+            duplicatePairs: [],
+            displayedPairs: [],
+            pagesToRemove: new Set(),
+            currentSelection: null,
+            originalArrayBuffer: null,
+            currentSort: { column: null, direction: 'asc' },
+            similarityThreshold: 85
+        };
+        
+        // Elementi DOM
+        const dom = {
+            fileInput: document.getElementById('fileInput'),
+            uploadBtn: document.getElementById('uploadBtn'),
+            exportButton: document.getElementById('exportButton'),
+            selectCol1: document.getElementById('selectCol1'),
+            selectCol2: document.getElementById('selectCol2'),
+            resetBtn: document.getElementById('resetBtn'),
+            analyzeBtn: document.getElementById('analyzeBtn'),
+            totalPages: document.getElementById('totalPages'),
+            duplicatePairs: document.getElementById('duplicatePairs'),
+            pagesToRemove: document.getElementById('pagesToRemove'),
+            duplicateCount: document.getElementById('duplicateCount'),
+            tableBody: document.getElementById('tableBody'),
+            preview1: document.getElementById('preview1'),
+            preview2: document.getElementById('preview2'),
+            preview1Status: document.getElementById('preview1Status'),
+            preview2Status: document.getElementById('preview2Status'),
+            loadingOverlay: document.getElementById('loadingOverlay'),
+            thresholdSlider: document.getElementById('thresholdSlider'),
+            thresholdValue: document.getElementById('thresholdValue'),
+            progressText: document.getElementById('progressText')
+        };
+        
+        // Funzioni di utilità
+        function showLoading() {
+            dom.loadingOverlay.classList.add('active');
+        }
+        
+        function hideLoading() {
+            dom.loadingOverlay.classList.remove('active');
+        }
+        
+        function updateProgress(percent) {
+            dom.progressText.textContent = `${Math.round(percent)}% completato`;
+        }
+        
+        function resetUI() {
+            state.pdfDoc = null;
+            state.totalPages = 0;
+            state.duplicatePairs = [];
+            state.displayedPairs = [];
+            state.pagesToRemove = new Set();
+            state.currentSelection = null;
+            state.originalArrayBuffer = null;
+            
+            dom.totalPages.textContent = '0';
+            dom.duplicatePairs.textContent = '0';
+            dom.pagesToRemove.textContent = '0';
+            dom.duplicateCount.textContent = '0 elementi';
+            dom.exportButton.disabled = true;
+            dom.analyzeBtn.disabled = true;
+            dom.selectCol1.disabled = true;
+            dom.selectCol2.disabled = true;
+            
+            dom.tableBody.innerHTML = `
+                <tr class="empty-row">
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <div>Carica e analizza un documento</div>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            
+            dom.preview1.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-file-image"></i>
+                    <div>Seleziona una riga</div>
+                </div>
+            `;
+            
+            dom.preview2.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-file-image"></i>
+                    <div>Seleziona una riga</div>
+                </div>
+            `;
+            
+            dom.preview1Status.textContent = '';
+            dom.preview2Status.textContent = '';
+        }
+        
+        // Funzioni per il caricamento e l'analisi PDF
+        async function handleFileUpload(file) {
+            if (!file) return;
+            
+            resetUI();
+            showLoading();
+            updateProgress(0);
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                state.originalArrayBuffer = arrayBuffer;
+                
+                // Carica il documento PDF
+                state.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                state.totalPages = state.pdfDoc.numPages;
+                dom.totalPages.textContent = state.totalPages;
+                dom.analyzeBtn.disabled = false;
+                
+                hideLoading();
+                
+            } catch (error) {
+                console.error('Errore durante il caricamento del PDF:', error);
+                alert('Errore durante il caricamento del PDF. Assicurati che il file sia valido.');
+                hideLoading();
+                resetUI();
+            }
+        }
+        
+        // Funzione per calcolare la similarità tra due stringhe (Jaccard index)
+        function calculateSimilarity(str1, str2) {
+            // Normalizza il testo
+            const normalizeText = (text) => {
+                return text.toLowerCase()
+                    .replace(/[^\w\s]/g, '') // Rimuove la punteggiatura
+                    .replace(/\s+/g, ' ')     // Sostituisce spazi multipli con uno spazio singolo
+                    .trim();
+            };
+            
+            const normStr1 = normalizeText(str1);
+            const normStr2 = normalizeText(str2);
+            
+            // Se entrambe le stringhe sono vuote, restituisci 100%
+            if (!normStr1 && !normStr2) return 100;
+            
+            // Tokenizzazione
+            const tokens1 = new Set(normStr1.split(' '));
+            const tokens2 = new Set(normStr2.split(' '));
+            
+            // Calcolo dell'intersezione
+            const intersection = new Set([...tokens1].filter(token => tokens2.has(token)));
+            
+            // Calcolo dell'unione
+            const union = new Set([...tokens1, ...tokens2]);
+            
+            // Calcolo dell'indice di Jaccard
+            const jaccardIndex = (intersection.size / union.size) * 100;
+            
+            return jaccardIndex;
+        }
+        
+        // Funzione per analizzare le pagine simili
+        async function analyzeSimilarPages() {
+            if (!state.pdfDoc || state.totalPages < 2) {
+                alert('Il documento deve contenere almeno 2 pagine per l\'analisi');
+                return;
+            }
+            
+            showLoading();
+            updateProgress(0);
+            
+            try {
+                // Estrai testo da tutte le pagine
+                const pageTexts = [];
+                
+                for (let i = 1; i <= state.totalPages; i++) {
+                    const page = await state.pdfDoc.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const text = textContent.items.map(item => item.str).join(' ');
+                    pageTexts.push(text);
+                    
+                    // Aggiorna la barra di avanzamento
+                    const progress = (i / state.totalPages) * 50;
+                    updateProgress(progress);
+                    
+                    page.cleanup();
+                }
+                
+                // Trova pagine simili
+                state.duplicatePairs = [];
+                const threshold = state.similarityThreshold;
+                
+                // Calcola il numero totale di confronti
+                const totalComparisons = (state.totalPages * (state.totalPages - 1)) / 2;
+                let comparisonsDone = 0;
+                
+                for (let i = 0; i < state.totalPages; i++) {
+                    for (let j = i + 1; j < state.totalPages; j++) {
+                        const similarity = calculateSimilarity(pageTexts[i], pageTexts[j]);
+                        
+                        if (similarity >= threshold) {
+                            state.duplicatePairs.push({
+                                page1: i + 1,
+                                page2: j + 1,
+                                similarity: Math.round(similarity)
+                            });
+                        }
+                        
+                        comparisonsDone++;
+                        
+                        // Aggiorna la barra di avanzamento
+                        const progress = 50 + (comparisonsDone / totalComparisons) * 50;
+                        updateProgress(progress);
+                    }
+                }
+                
+                state.displayedPairs = [...state.duplicatePairs];
+                dom.duplicatePairs.textContent = state.duplicatePairs.length;
+                dom.duplicateCount.textContent = `${state.duplicatePairs.length} elementi`;
+                
+                // Abilita i controlli
+                dom.selectCol1.disabled = false;
+                dom.selectCol2.disabled = false;
+                
+                // Aggiorna l'UI
+                updateDuplicateDisplay();
+                hideLoading();
+                
+            } catch (error) {
+                console.error('Errore durante l\'analisi:', error);
+                alert('Errore durante l\'analisi del documento');
+                hideLoading();
+            }
+        }
+        
+        // Funzioni per l'UI
+        function updateDuplicateDisplay() {
+            if (state.displayedPairs.length === 0) {
+                dom.tableBody.innerHTML = `
+                    <tr class="empty-row">
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <i class="fas fa-check-circle"></i>
+                                <div>Nessuna pagina simile trovata</div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            let tableHTML = '';
+            
+            state.displayedPairs.forEach((pair, index) => {
+                const isSelected = state.currentSelection === index ? 'selected' : '';
+                const isPage1Marked = state.pagesToRemove.has(pair.page1);
+                const isPage2Marked = state.pagesToRemove.has(pair.page2);
+                
+                // Determina la classe CSS in base al livello di similarità
+                let similarityClass = 'similarity-low';
+                if (pair.similarity >= 90) similarityClass = 'similarity-high';
+                else if (pair.similarity >= 75) similarityClass = 'similarity-medium';
+                
+                tableHTML += `
+                    <tr class="${isSelected}" data-index="${index}">
+                        <td class="checkbox-cell">
+                            <input type="checkbox" id="check-${index}-1" ${isPage1Marked ? 'checked' : ''}>
+                        </td>
+                        <td>
+                            <label for="check-${index}-1">${pair.page1}</label>
+                        </td>
+                        <td class="checkbox-cell">
+                            <input type="checkbox" id="check-${index}-2" ${isPage2Marked ? 'checked' : ''}>
+                        </td>
+                        <td>
+                            <label for="check-${index}-2">${pair.page2}</label>
+                        </td>
+                        <td class="${similarityClass}">
+                            ${pair.similarity}%
+                            <div class="similarity-indicator">
+                                <div class="similarity-progress" style="width: ${pair.similarity}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            dom.tableBody.innerHTML = tableHTML;
+            
+            // Aggiungi gli event listener per i checkbox
+            document.querySelectorAll('#tableBody input[type="checkbox"]').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const parts = this.id.split('-');
+                    const rowIndex = parseInt(parts[1]);
+                    const column = parseInt(parts[2]);
+                    
+                    const pageNumber = column === 1 ? 
+                        state.displayedPairs[rowIndex].page1 : 
+                        state.displayedPairs[rowIndex].page2;
+                    
+                    if (this.checked) {
+                        state.pagesToRemove.add(pageNumber);
+                    } else {
+                        state.pagesToRemove.delete(pageNumber);
+                    }
+                    
+                    updateStatus();
+                    updateColumnButtons();
+                    updatePreviews();
+                });
+            });
+        }
+        
+        async function renderPagePreview(pageNumber, container) {
+            if (!state.pdfDoc) return;
+            
+            try {
+                const page = await state.pdfDoc.getPage(pageNumber);
+                const viewport = page.getViewport({ scale: 1.2 });
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                await page.render(renderContext).promise;
+                
+                // Crea un contenitore per il canvas
+                const canvasContainer = document.createElement('div');
+                canvasContainer.className = 'canvas-container';
+                canvasContainer.appendChild(canvas);
+                
+                // Crea l'overlay per il canvas
+                const overlay = document.createElement('div');
+                overlay.className = 'preview-overlay';
+                overlay.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                overlay.style.display = state.pagesToRemove.has(pageNumber) ? 'flex' : 'none';
+                
+                canvasContainer.appendChild(overlay);
+                
+                // Pulisci il contenitore e aggiungi il canvas con overlay
+                container.innerHTML = '';
+                container.appendChild(canvasContainer);
+                
+                return overlay;
+                
+            } catch (error) {
+                console.error('Errore nel rendering della pagina:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>Errore nel caricamento</div>
+                    </div>
+                `;
+                return null;
+            }
+        }
+        
+        async function updatePreviews() {
+            if (state.currentSelection === null || state.displayedPairs.length === 0) {
+                dom.preview1.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-file-image"></i>
+                        <div>Seleziona una riga</div>
+                    </div>
+                `;
+                dom.preview2.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-file-image"></i>
+                        <div>Seleziona una riga</div>
+                    </div>
+                `;
+                dom.preview1Status.textContent = '';
+                dom.preview2Status.textContent = '';
+                return;
+            }
+            
+            const pair = state.displayedPairs[state.currentSelection];
+            
+            // Renderizza le anteprime
+            const overlay1 = await renderPagePreview(pair.page1, dom.preview1);
+            const overlay2 = await renderPagePreview(pair.page2, dom.preview2);
+            
+            // Aggiorna lo stato
+            const isPage1Marked = state.pagesToRemove.has(pair.page1);
+            const isPage2Marked = state.pagesToRemove.has(pair.page2);
+            
+            if (overlay1) overlay1.style.display = isPage1Marked ? 'flex' : 'none';
+            if (overlay2) overlay2.style.display = isPage2Marked ? 'flex' : 'none';
+            
+            dom.preview1Status.textContent = isPage1Marked ? 'Da rimuovere' : '';
+            dom.preview2Status.textContent = isPage2Marked ? 'Da rimuovere' : '';
+        }
+        
+        // Funzioni per la selezione delle pagine
+        function selectColumn(column) {
+            const pages = state.displayedPairs.map(pair => pair[`page${column}`]);
+            
+            // Controlla se tutte le pagine nella colonna sono già selezionate
+            const allMarked = pages.every(page => state.pagesToRemove.has(page));
+            
+            if (allMarked) {
+                // Deseleziona tutte
+                pages.forEach(page => state.pagesToRemove.delete(page));
+            } else {
+                // Seleziona tutte
+                pages.forEach(page => state.pagesToRemove.add(page));
+            }
+            
+            // Aggiorna l'UI
+            updateDuplicateDisplay();
+            updatePreviews();
+            updateStatus();
+            updateColumnButtons();
+        }
+        
+        function updateColumnButtons() {
+            const pagesCol1 = state.displayedPairs.map(p => p.page1);
+            const pagesCol2 = state.displayedPairs.map(p => p.page2);
+            
+            const allCol1Marked = pagesCol1.length > 0 && pagesCol1.every(p => state.pagesToRemove.has(p));
+            const allCol2Marked = pagesCol2.length > 0 && pagesCol2.every(p => state.pagesToRemove.has(p));
+            
+            dom.selectCol1.textContent = allCol1Marked ? "Deseleziona Col. 1" : "Seleziona Col. 1";
+            dom.selectCol2.textContent = allCol2Marked ? "Deseleziona Col. 2" : "Seleziona Col. 2";
+            
+            // Aggiungi classe per stato attivo
+            dom.selectCol1.classList.toggle('active', allCol1Marked);
+            dom.selectCol2.classList.toggle('active', allCol2Marked);
+        }
+        
+        function updateStatus() {
+            dom.pagesToRemove.textContent = state.pagesToRemove.size;
+            dom.exportButton.disabled = state.pagesToRemove.size === 0;
+        }
+        
+        // Funzioni per l'esportazione
+        async function exportPDF() {
+            if (state.pagesToRemove.size === 0 || !state.originalArrayBuffer) {
+                alert('Nessuna pagina selezionata per la rimozione');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                // Carica il PDF originale
+                const pdfDoc = await PDFLib.PDFDocument.load(state.originalArrayBuffer);
+                const newPdf = await PDFLib.PDFDocument.create();
+                
+                // Copia solo le pagine non selezionate per la rimozione
+                const pagesToKeep = [];
+                for (let i = 1; i <= state.totalPages; i++) {
+                    if (!state.pagesToRemove.has(i)) {
+                        pagesToKeep.push(i - 1); // pdf-lib usa indici 0-based
+                    }
+                }
+                
+                // Copia le pagine nel nuovo documento
+                const copiedPages = await newPdf.copyPages(pdfDoc, pagesToKeep);
+                copiedPages.forEach(page => newPdf.addPage(page));
+                
+                // Salva il nuovo PDF
+                const pdfBytes = await newPdf.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                // Crea un link per il download
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'documento_pulito.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                hideLoading();
+                
+            } catch (error) {
+                console.error('Errore durante l\'esportazione:', error);
+                alert('Errore durante l\'esportazione del PDF');
+                hideLoading();
+            }
+        }
+        
+        // Funzioni di ordinamento
+        function sortTable(column) {
+            if (state.displayedPairs.length === 0) return;
+            
+            // Determina la direzione di ordinamento
+            const direction = state.currentSort.column === column && 
+                             state.currentSort.direction === 'asc' ? 'desc' : 'asc';
+            
+            state.currentSort = { column, direction };
+            
+            // Ordina i dati
+            state.displayedPairs.sort((a, b) => {
+                const valueA = a[column];
+                const valueB = b[column];
+                
+                if (direction === 'asc') {
+                    return valueA - valueB;
+                } else {
+                    return valueB - valueA;
+                }
+            });
+            
+            // Reimposta la selezione
+            state.currentSelection = null;
+            
+            // Aggiorna l'UI
+            updateDuplicateDisplay();
+            updatePreviews();
+        }
+        
+        // Event Listeners
+        dom.uploadBtn.addEventListener('click', () => dom.fileInput.click());
+        
+        dom.fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+        
+        dom.thresholdSlider.addEventListener('input', () => {
+            const value = dom.thresholdSlider.value;
+            dom.thresholdValue.textContent = `${value}%`;
+            state.similarityThreshold = parseInt(value);
+        });
+        
+        dom.analyzeBtn.addEventListener('click', analyzeSimilarPages);
+        dom.exportButton.addEventListener('click', exportPDF);
+        dom.selectCol1.addEventListener('click', () => selectColumn(1));
+        dom.selectCol2.addEventListener('click', () => selectColumn(2));
+        dom.resetBtn.addEventListener('click', resetUI);
+        
+        // Selezione riga della tabella
+        dom.tableBody.addEventListener('click', (e) => {
+            const row = e.target.closest('tr');
+            if (!row || row.classList.contains('empty-row')) return;
+            
+            const index = parseInt(row.dataset.index);
+            state.currentSelection = index;
+            
+            // Aggiorna la visualizzazione della tabella
+            document.querySelectorAll('#tableBody tr').forEach(tr => {
+                tr.classList.remove('selected');
+            });
+            row.classList.add('selected');
+            
+            updatePreviews();
+        });
+        
+        // Navigazione da tastiera
+        document.addEventListener('keydown', (e) => {
+            if (state.currentSelection === null || state.displayedPairs.length === 0) return;
+            
+            let newIndex = state.currentSelection;
+            
+            if (e.key === 'ArrowDown') {
+                newIndex = Math.min(state.displayedPairs.length - 1, state.currentSelection + 1);
+            } else if (e.key === 'ArrowUp') {
+                newIndex = Math.max(0, state.currentSelection - 1);
+            } else {
+                return;
+            }
+            
+            state.currentSelection = newIndex;
+            
+            // Aggiorna la selezione nella tabella
+            document.querySelectorAll('#tableBody tr').forEach(tr => {
+                tr.classList.remove('selected');
+            });
+            const selectedRow = document.querySelector(`#tableBody tr[data-index="${newIndex}"]`);
+            if (selectedRow) {
+                selectedRow.classList.add('selected');
+                selectedRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            
+            updatePreviews();
+        });
+        
+        // Ordinamento tabella
+        document.querySelectorAll('th[data-sort]').forEach(th => {
+            th.addEventListener('click', () => {
+                const column = th.dataset.sort;
+                sortTable(column);
+            });
+        });
+        
+        // Simula icone FontAwesome
+        document.head.innerHTML += `
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+        `;
+        
+        // Inizializza l'app
+        resetUI();
+    </script>
+</body>
+</html>
