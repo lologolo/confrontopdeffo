@@ -6,22 +6,23 @@
     <title>PDF Similarity Analyzer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         :root {
-            --bg-main: #121212;
-            --bg-card: #1e1e1e;
-            --bg-header: #1a1a1a;
-            --bg-overlay: rgba(0, 0, 0, 0.7);
-            --text-primary: #FFFFFF;
-            --text-secondary: #b0b0b0;
-            --accent: #4A90E2;
-            --accent-hover: #3a7bc8;
-            --remove: rgba(255, 80, 80, 0.3);
-            --success: #4CAF50;
-            --warning: #FFC107;
-            --border-radius: 8px;
-            --transition: all 0.3s ease;
+            --bg-main: #0a0e17;
+            --bg-surface: #1a1f2e;
+            --bg-card: #252b3d;
+            --primary: #00d4ff;
+            --primary-variant: #0099cc;
+            --secondary: #ffd700;
+            --error: #ff6b6b;
+            --success: #51cf66;
+            --on-background: #ffffff;
+            --on-surface: #e8eaed;
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -32,90 +33,33 @@
 
         body {
             background-color: var(--bg-main);
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            line-height: 1.5;
+            color: var(--on-background);
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
             min-height: 100vh;
-            padding: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .container {
-            max-width: 1800px;
-            margin: 0 auto;
+            width: 95%;
+            max-width: 1600px;
             display: grid;
             grid-template-columns: 1fr;
-            grid-template-rows: auto 1fr auto;
-            gap: 15px;
-            height: calc(100vh - 30px);
-        }
-
-        /* Header compatto */
-        header {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            align-items: center;
-            background-color: var(--bg-header);
-            padding: 15px;
-            border-radius: var(--border-radius);
-            gap: 15px;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
+            grid-template-rows: auto 1fr;
             gap: 10px;
-        }
-
-        .logo-icon {
-            background: var(--accent);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        h1 {
-            font-size: 20px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .header-stats {
-            display: flex;
-            gap: 20px;
-            font-size: 14px;
-            justify-content: center;
-        }
-
-        .header-stat {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 80px;
-        }
-
-        .stat-value {
-            font-weight: 700;
-            color: var(--accent);
-            font-size: 20px;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 12px;
+            height: 95vh;
         }
 
         .btn {
-            background: var(--accent);
-            color: white;
+            background: var(--primary);
+            color: #000;
             border: none;
-            padding: 10px 15px;
-            border-radius: var(--border-radius);
-            font-family: 'Inter', sans-serif;
+            padding: 8px 12px;
+            border-radius: 24px;
+            font-family: 'Roboto', sans-serif;
             font-weight: 500;
             font-size: 14px;
             cursor: pointer;
@@ -123,198 +67,272 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         .btn:hover {
-            background: var(--accent-hover);
+            background: #33ddff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
         }
 
         .btn:disabled {
-            background: #555;
+            background: #4a5568;
+            color: #a0aec0;
             cursor: not-allowed;
-            opacity: 0.6;
+            transform: none;
+            box-shadow: none;
         }
 
         .btn-outline {
             background: transparent;
-            border: 1px solid var(--accent);
+            border: 2px solid var(--primary);
+            color: var(--primary);
         }
 
         .btn-outline:hover {
-            background: rgba(74, 144, 226, 0.1);
+            background: rgba(0, 212, 255, 0.1);
         }
 
         .btn-remove {
-            background: rgba(255, 80, 80, 0.15);
-            border: 1px solid rgba(255, 80, 80, 0.5);
+            background: rgba(255, 107, 107, 0.15);
+            border: 2px solid var(--error);
+            color: var(--error);
         }
 
         .btn-remove:hover {
-            background: rgba(255, 80, 80, 0.25);
+            background: rgba(255, 107, 107, 0.25);
         }
 
         .btn-analyze {
-            background: #9c27b0;
+            background: var(--secondary);
+            color: #1a202c;
         }
 
         .btn-analyze:hover {
-            background: #7b1fa2;
+            background: #ffed4e;
         }
 
-        /* Layout principale compatto */
-        .main-content {
-            display: grid;
-            grid-template-columns: minmax(300px, 1fr) minmax(600px, 2fr);
-            gap: 15px;
-            height: 100%;
-        }
-
-        @media (max-width: 1200px) {
-            .main-content {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
-            }
-        }
-
-        .card {
-            background: var(--bg-card);
+        /* Nuovo layout per i controlli in alto con header integrato */
+        .controls-section {
+            background: var(--bg-surface);
             border-radius: var(--border-radius);
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            padding: 12px 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .controls-group.flex-grow {
+            flex: 1;
+            min-width: 300px;
+            justify-content: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-icon {
+            background: var(--primary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--primary);
+            margin-right: 12px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 16px;
+        }
+
+        .header-stat {
             display: flex;
             flex-direction: column;
-            height: 100%;
-        }
-
-        .card-header {
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
+            min-width: 60px;
         }
 
-        h2 {
-            font-size: 18px;
-            font-weight: 600;
+        .stat-value {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--secondary);
         }
 
-        /* Controlli compatti */
-        .controls-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+        .stat-label {
+            color: var(--on-surface);
+            font-size: 10px;
+            opacity: 0.8;
         }
 
-        .analysis-controls {
-            background: rgba(74, 144, 226, 0.1);
-            border-radius: var(--border-radius);
-            padding: 15px;
-            margin-bottom: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: center;
+        #resetBtn, #exportButton {
+            padding: 8px;
+            width: 36px;
+            height: 36px;
+            justify-content: center;
         }
 
         .threshold-control {
             display: flex;
             align-items: center;
-            gap: 10px;
-            flex: 1;
+            gap: 8px;
+            min-width: 280px;
         }
 
         .threshold-value {
             min-width: 40px;
             text-align: center;
             font-weight: bold;
-            color: var(--accent);
-            font-size: 14px;
+            color: var(--secondary);
+            font-size: 13px;
         }
 
         .slider-container {
             flex: 1;
-            min-width: 120px;
+            min-width: 140px;
         }
 
         .slider {
             width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: #444;
+            height: 8px;
+            border-radius: 4px;
+            background: #4a5568;
             outline: none;
             -webkit-appearance: none;
         }
 
         .slider::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
-            background: var(--accent);
+            background: var(--secondary);
             cursor: pointer;
+            box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
         }
 
-        .slider::-moz-range-thumb {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-            border: none;
-        }
-
-        /* Tabella compatta con scroll */
-        .table-container {
+        /* Layout principale con risultati e anteprime */
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 12px;
+            height: 100%;
+            min-height: 0;
             overflow: hidden;
-            flex: 1;
+        }
+
+        /* Sezione risultati a sinistra */
+        .results-section {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
+            height: 100%;
+            overflow: hidden;
         }
 
-        .table-header {
+        .results-header {
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
         }
 
-        .table-scroll {
-            overflow-y: auto;
-            max-height: calc(100vh - 400px);
+        .results-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-count {
+            background: var(--primary);
+            color: #000;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 16px;
+            font-weight: 500;
+        }
+
+        .results-table-container {
             flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .results-table-scroll {
+            overflow-y: auto;
+            flex: 1;
+            border-radius: var(--border-radius);
+            background: var(--bg-surface);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         thead {
-            background: #2a2a2a;
+            background: var(--bg-surface);
             position: sticky;
             top: 0;
+            z-index: 10;
         }
 
         th {
-            padding: 10px;
+            padding: 8px 12px;
             text-align: left;
             font-weight: 500;
-            color: var(--text-secondary);
+            color: var(--on-surface);
             cursor: pointer;
             user-select: none;
             transition: var(--transition);
+            background: var(--bg-surface);
+            position: sticky;
+            top: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         th:hover {
-            color: var(--text-primary);
-            background: #333;
+            color: var(--primary);
         }
 
         tbody tr {
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             transition: var(--transition);
             cursor: pointer;
         }
@@ -324,73 +342,91 @@
         }
 
         tbody tr:hover {
-            background: #2a2a2a;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         tbody tr.selected {
-            background: rgba(74, 144, 226, 0.2);
+            background: rgba(187, 134, 252, 0.1);
         }
 
         td {
-            padding: 10px;
+            padding: 8px 12px;
             position: relative;
         }
 
         .checkbox-cell {
-            width: 20px;
+            width: 16px;
             padding-right: 0;
         }
 
         .checkbox-cell input {
             cursor: pointer;
+            width: 14px;
+            height: 14px;
+            accent-color: var(--primary);
         }
 
         .similarity-high {
             color: var(--success);
-            font-weight: 600;
+            font-weight: 500;
         }
 
         .similarity-medium {
-            color: var(--warning);
-            font-weight: 600;
+            color: var(--secondary);
+            font-weight: 500;
         }
 
         .similarity-low {
-            color: #ff6b6b;
-            font-weight: 600;
+            color: var(--error);
+            font-weight: 500;
         }
 
-        /* Anteprime affiancate orizzontalmente */
-        .previews-container {
+        .marked-for-removal {
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--error);
+            font-weight: 500;
+            position: relative;
+        }
+
+        .marked-for-removal::after {
+            content: '🗑️';
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+        }
+
+        /* Sezione anteprime a destra */
+        .previews-section {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
             height: 100%;
+            overflow: hidden;
         }
 
-        .previews-row {
+        .previews-container {
+            flex: 1;
             display: flex;
-            gap: 15px;
-            height: 50%;
-            min-height: 300px;
+            flex-direction: row;
+            gap: 12px;
+            overflow: hidden;
+            min-height: 0;
         }
 
         .preview-box {
-            background: #1a1a1a;
+            background: var(--bg-surface);
             border-radius: var(--border-radius);
             overflow: hidden;
             position: relative;
             flex: 1;
             display: flex;
             flex-direction: column;
-        }
-
-        .preview-header {
-            padding: 10px 15px;
-            background: #2a2a2a;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .preview-content {
@@ -398,14 +434,36 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: auto;
-            padding: 15px;
+            overflow: hidden;
             position: relative;
+            min-height: 0;
+            padding: 0;
         }
 
         .canvas-container {
             position: relative;
-            display: inline-block;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: auto;
+        }
+
+        .pdf-vector-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: auto;
+            background: white;
+        }
+
+        .pdf-vector-container canvas {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1;
         }
 
         .preview-overlay {
@@ -414,7 +472,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--remove);
+            background: rgba(255, 107, 107, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -423,37 +481,43 @@
             opacity: 0;
             transition: var(--transition);
             pointer-events: none;
+            border-radius: 4px;
+            z-index: 2;
         }
 
         .preview-overlay.visible {
             opacity: 1;
         }
 
-        .preview-overlay i {
-            background: rgba(0, 0, 0, 0.7);
+        .preview-overlay .material-icons {
+            font-size: 120px;
+            opacity: 0.7;
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 50%;
-            width: 60px;
-            height: 60px;
+            width: 160px;
+            height: 160px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         canvas {
             max-width: 100%;
             max-height: 100%;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
             display: block;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 1;
         }
 
-        /* Loading overlay */
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--bg-overlay);
+            background: rgba(18, 18, 18, 0.9);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -470,13 +534,13 @@
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             border: 4px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            border-top: 4px solid var(--accent);
+            border-top: 4px solid var(--primary);
             animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         @keyframes spin {
@@ -485,201 +549,330 @@
         }
 
         .loading-text {
-            font-size: 16px;
-            color: var(--text-primary);
+            font-size: 18px;
+            color: var(--on-background);
+            margin-bottom: 10px;
         }
 
-        .page-count {
-            background: var(--accent);
-            color: white;
-            font-size: 11px;
-            padding: 2px 6px;
-            border-radius: 20px;
+        .progress-container {
+            width: 300px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--secondary);
+            width: 0%;
+            transition: width 0.3s ease;
         }
 
         .empty-state {
             text-align: center;
-            padding: 20px;
-            color: var(--text-secondary);
+            padding: 20px 12px;
+            color: var(--on-surface);
             font-size: 14px;
+            opacity: 0.7;
         }
 
         .empty-state i {
-            font-size: 36px;
-            margin-bottom: 10px;
-            color: #444;
+            font-size: 40px;
+            margin-bottom: 12px;
+            color: var(--primary);
+            opacity: 0.5;
         }
 
         footer {
             text-align: center;
-            padding: 15px 0;
-            color: var(--text-secondary);
-            font-size: 12px;
-            border-top: 1px solid #2a2a2a;
+            padding: 16px 0;
+            color: var(--on-surface);
+            font-size: 14px;
+            opacity: 0.7;
         }
 
         .similarity-indicator {
-            height: 6px;
-            background: #333;
-            border-radius: 3px;
-            margin-top: 3px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 8px;
             overflow: hidden;
         }
 
         .similarity-progress {
             height: 100%;
-            background: var(--accent);
+            background: var(--primary);
             width: 0%;
             transition: width 0.3s ease;
         }
 
-        /* Scrollbar styling */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #1e1e1e;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #444;
+            background: var(--primary);
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #555;
+            background: #33ddff;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .container {
-                padding: 10px;
-                height: calc(100vh - 20px);
+                padding: 15px;
+                height: 95vh;
             }
             
-            header {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto;
+            .controls-section {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .controls-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .logo {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
             }
             
             .header-stats {
                 justify-content: space-around;
                 width: 100%;
-                margin-top: 10px;
-            }
-            
-            .controls-row, .analysis-controls {
-                flex-direction: column;
-                align-items: stretch;
             }
             
             .btn {
                 width: 100%;
+                justify-content: center;
             }
             
             .threshold-control {
                 flex-direction: column;
                 align-items: stretch;
+                min-width: auto;
             }
             
-            .previews-row {
-                flex-direction: column;
-                height: auto;
+            .main-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+                gap: 15px;
             }
+            
+            .results-section, .previews-section {
+                min-height: 300px;
+            }
+            
+            .previews-container {
+                flex-direction: row;
+                gap: 15px;
+            }
+            
+            .preview-box {
+                min-height: 250px;
+            }
+            
+            .preview-content {
+                min-height: 200px;
+            }
+        }
+
+        h2, .results-title, .previews-title { /* Aggiunto per uniformità */
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        th[data-sort] {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-checkbox {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--secondary);
+            margin-left: 8px;
+        }
+
+        .table-header-row {
+            padding: 0;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            width: 100%;
+        }
+
+        .header-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .header-item:first-child {
+            justify-content: flex-start;
+        }
+
+        .header-item:last-child {
+            justify-content: flex-end;
+        }
+
+        .header-checkbox {
+            order: -1;
+            margin-right: 6px;
+        }
+
+        .page-cell {
+            padding: 8px 12px;
+            position: relative;
+        }
+
+        .page-content {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .page-checkbox {
+            cursor: pointer;
+            width: 14px;
+            height: 14px;
+            accent-color: var(--primary);
+        }
+
+        .page-checkbox:checked + label {
+            color: var(--error);
+            font-weight: 500;
+        }
+
+        .results-table th {
+            background: var(--surface-color);
+            color: var(--text-color);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border-color);
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .results-table th .toggle-all {
+            order: -1;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="logo">
-                <div class="logo-icon">PDF</div>
-                <h1>PDF Similarity Analyzer</h1>
+        <!-- Nuovo Header e Controlli Integrati -->
+        <div class="controls-section">
+            <div class="controls-group">
+                <div class="logo">
+                    <div class="logo-icon"><span class="material-icons">picture_as_pdf</span></div>
+                    <h1>Somiglianza Pagine PDF</h1>
+                </div>
+                <button id="uploadBtn" class="btn btn-outline">
+                    <span class="material-icons">upload_file</span> Carica PDF
+                </button>
+                <input type="file" id="fileInput" accept=".pdf" style="display: none;">
+            </div>
+
+            <div class="controls-group flex-grow">
+                <div class="threshold-control">
+                    <label for="thresholdSlider"><span class="material-icons">tune</span> Soglia:</label>
+                    <div class="slider-container">
+                        <input type="range" min="1" max="100" value="85" class="slider" id="thresholdSlider">
+                    </div>
+                    <div class="threshold-value" id="thresholdValue">85%</div>
+                </div>
             </div>
             
-            <div class="header-stats">
-                <div class="header-stat">
-                    <div class="stat-value" id="totalPages">0</div>
-                    <div class="stat-label">Pagine</div>
+            <div class="controls-group">
+                <div class="header-stats">
+                    <div class="header-stat">
+                        <div class="stat-value" id="totalPages">0</div>
+                        <div class="stat-label">Pagine totali</div>
+                    </div>
+                    <div class="header-stat">
+                        <div class="stat-value" id="duplicatePairs">0</div>
+                        <div class="stat-label">Coppie simili</div>
+                    </div>
+                    <div class="header-stat">
+                        <div class="stat-value" id="pagesToRemove">0</div>
+                        <div class="stat-label">Pagine da rimuovere</div>
+                    </div>
                 </div>
-                <div class="header-stat">
-                    <div class="stat-value" id="duplicatePairs">0</div>
-                    <div class="stat-label">Coppie simili</div>
-                </div>
-                <div class="header-stat">
-                    <div class="stat-value" id="pagesToRemove">0</div>
-                    <div class="stat-label">Da rimuovere</div>
-                </div>
+                <button id="analyzeBtn" class="btn btn-analyze" disabled>
+                    <span class="material-icons">search</span> Analizza
+                </button>
+                <button id="resetBtn" class="btn btn-remove" title="Ripristina">
+                    <span class="material-icons">refresh</span>
+                </button>
+                <button id="exportButton" class="btn" disabled title="Esporta PDF">
+                    <span class="material-icons">download</span>
+                </button>
             </div>
-            
-            <button id="exportButton" class="btn" disabled>
-                <i class="fas fa-download"></i> Esporta PDF
-            </button>
-        </header>
+        </div>
 
         <div class="main-content">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Controlli</h2>
+            <div class="results-section">
+                <div class="results-header">
+                    <h2 class="results-title"><span class="material-icons">list</span> Risultati</h2>
+                    <div class="page-count" id="duplicateCount">0 elementi</div>
                 </div>
                 
-                <div class="controls-row">
-                    <button id="uploadBtn" class="btn">
-                        <i class="fas fa-file-upload"></i> Carica PDF
-                    </button>
-                    <input type="file" id="fileInput" accept=".pdf" style="display: none;">
-                </div>
-                
-                <div class="analysis-controls">
-                    <div class="threshold-control">
-                        <label for="thresholdSlider">Soglia di similarità:</label>
-                        <div class="slider-container">
-                            <input type="range" min="1" max="100" value="85" class="slider" id="thresholdSlider">
-                        </div>
-                        <div class="threshold-value" id="thresholdValue">85%</div>
-                    </div>
-                    <button id="analyzeBtn" class="btn btn-analyze" disabled>
-                        <i class="fas fa-search"></i> Analizza
-                    </button>
-                </div>
-                
-                <div class="controls-row">
-                    <button id="selectCol1" class="btn btn-outline" disabled>
-                        <i class="fas fa-check-square"></i> Colonna 1
-                    </button>
-                    <button id="selectCol2" class="btn btn-outline" disabled>
-                        <i class="fas fa-check-square"></i> Colonna 2
-                    </button>
-                    <button id="resetBtn" class="btn btn-remove">
-                        <i class="fas fa-redo"></i> Reset
-                    </button>
-                </div>
-                
-                <div class="table-container">
-                    <div class="table-header">
-                        <h3>Risultati</h3>
-                        <div class="page-count" id="duplicateCount">0 elementi</div>
-                    </div>
-                    
-                    <div class="table-scroll">
+                <div class="results-table-container">
+                    <div class="results-table-scroll">
                         <table id="resultsTable">
                             <thead>
                                 <tr>
-                                    <th></th>
-                                    <th data-sort="page1">Pagina 1</th>
-                                    <th></th>
-                                    <th data-sort="page2">Pagina 2</th>
-                                    <th data-sort="similarity">Similarità</th>
+                                    <th colspan="3" class="table-header-row">
+                                        <div class="header-content">
+                                            <div class="header-item">
+                                                <span>Pagina 1</span>
+                                                <input type="checkbox" id="selectCol1Toggle" class="header-checkbox" title="Seleziona tutta la colonna 1" disabled>
+                                            </div>
+                                            <div class="header-item">
+                                                <span>Pagina 2</span>
+                                                <input type="checkbox" id="selectCol2Toggle" class="header-checkbox" title="Seleziona tutta la colonna 2" disabled>
+                                            </div>
+                                            <div class="header-item">
+                                                <span>Similarità</span>
+                                            </div>
+                                        </div>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody id="tableBody">
                                 <tr class="empty-row">
-                                    <td colspan="5">
+                                    <td colspan="3">
                                         <div class="empty-state">
-                                            <i class="fas fa-search"></i>
-                                            <div>Carica e analizza un documento</div>
+                                            <span class="material-icons">search</span>
+                                            <div>Carica un documento e avvia l'analisi</div>
                                         </div>
                                     </td>
                                 </tr>
@@ -689,36 +882,22 @@
                 </div>
             </div>
             
-            <div class="card">
-                <div class="card-header">
-                    <h2>Anteprime</h2>
-                </div>
-                
+            <div class="previews-section">
                 <div class="previews-container">
-                    <div class="previews-row">
-                        <div class="preview-box">
-                            <div class="preview-header">
-                                <div>Pagina 1</div>
-                                <div id="preview1Status"></div>
-                            </div>
-                            <div class="preview-content" id="preview1">
-                                <div class="empty-state">
-                                    <i class="fas fa-file-image"></i>
-                                    <div>Seleziona una riga</div>
-                                </div>
+                    <div class="preview-box">
+                        <div class="preview-content" id="preview1">
+                            <div class="empty-state">
+                                <span class="material-icons">image</span>
+                                <div>Carica un documento e avvia l'analisi</div>
                             </div>
                         </div>
-                        
-                        <div class="preview-box">
-                            <div class="preview-header">
-                                <div>Pagina 2</div>
-                                <div id="preview2Status"></div>
-                            </div>
-                            <div class="preview-content" id="preview2">
-                                <div class="empty-state">
-                                    <i class="fas fa-file-image"></i>
-                                    <div>Seleziona una riga</div>
-                                </div>
+                    </div>
+                    
+                    <div class="preview-box">
+                        <div class="preview-content" id="preview2">
+                            <div class="empty-state">
+                                <span class="material-icons">image</span>
+                                <div>Carica un documento e avvia l'analisi</div>
                             </div>
                         </div>
                     </div>
@@ -726,15 +905,14 @@
             </div>
         </div>
         
-        <footer>
-            <p>PDF Similarity Analyzer &copy; 2023</p>
-        </footer>
-    </div>
-    
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <div class="loading-text">Analisi in corso...</div>
-        <div id="progressText" style="margin-top: 10px; font-size: 14px;">0% completato</div>
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <div class="loading-text">Analisi in corso...</div>
+            <div id="progressText">0% completato</div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </div>
     </div>
     
     <script>
@@ -759,8 +937,6 @@
             fileInput: document.getElementById('fileInput'),
             uploadBtn: document.getElementById('uploadBtn'),
             exportButton: document.getElementById('exportButton'),
-            selectCol1: document.getElementById('selectCol1'),
-            selectCol2: document.getElementById('selectCol2'),
             resetBtn: document.getElementById('resetBtn'),
             analyzeBtn: document.getElementById('analyzeBtn'),
             totalPages: document.getElementById('totalPages'),
@@ -770,12 +946,13 @@
             tableBody: document.getElementById('tableBody'),
             preview1: document.getElementById('preview1'),
             preview2: document.getElementById('preview2'),
-            preview1Status: document.getElementById('preview1Status'),
-            preview2Status: document.getElementById('preview2Status'),
             loadingOverlay: document.getElementById('loadingOverlay'),
             thresholdSlider: document.getElementById('thresholdSlider'),
             thresholdValue: document.getElementById('thresholdValue'),
-            progressText: document.getElementById('progressText')
+            progressText: document.getElementById('progressText'),
+            progressBar: document.getElementById('progressBar'),
+            selectCol1Toggle: document.getElementById('selectCol1Toggle'),
+            selectCol2Toggle: document.getElementById('selectCol2Toggle')
         };
         
         // Funzioni di utilità
@@ -789,6 +966,7 @@
         
         function updateProgress(percent) {
             dom.progressText.textContent = `${Math.round(percent)}% completato`;
+            dom.progressBar.style.width = `${percent}%`;
         }
         
         function resetUI() {
@@ -806,15 +984,13 @@
             dom.duplicateCount.textContent = '0 elementi';
             dom.exportButton.disabled = true;
             dom.analyzeBtn.disabled = true;
-            dom.selectCol1.disabled = true;
-            dom.selectCol2.disabled = true;
             
             dom.tableBody.innerHTML = `
                 <tr class="empty-row">
-                    <td colspan="5">
+                    <td colspan="3">
                         <div class="empty-state">
-                            <i class="fas fa-search"></i>
-                            <div>Carica e analizza un documento</div>
+                            <span class="material-icons">search</span>
+                            <div>Carica un documento e avvia l'analisi</div>
                         </div>
                     </td>
                 </tr>
@@ -822,23 +998,25 @@
             
             dom.preview1.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-file-image"></i>
-                    <div>Seleziona una riga</div>
+                    <span class="material-icons">image</span>
+                    <div>Carica un documento e avvia l'analisi</div>
                 </div>
             `;
             
             dom.preview2.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-file-image"></i>
-                    <div>Seleziona una riga</div>
+                    <span class="material-icons">image</span>
+                    <div>Carica un documento e avvia l'analisi</div>
                 </div>
             `;
             
-            dom.preview1Status.textContent = '';
-            dom.preview2Status.textContent = '';
+            dom.selectCol1Toggle.checked = false;
+            dom.selectCol1Toggle.disabled = true;
+            dom.selectCol2Toggle.checked = false;
+            dom.selectCol2Toggle.disabled = true;
         }
         
-        // Funzioni per il caricamento e l'analisi PDF
+        // Caricamento e analisi PDF
         async function handleFileUpload(file) {
             if (!file) return;
             
@@ -866,39 +1044,30 @@
             }
         }
         
-        // Funzione per calcolare la similarità tra due stringhe (Jaccard index)
+        // Calcolo similarità
         function calculateSimilarity(str1, str2) {
-            // Normalizza il testo
             const normalizeText = (text) => {
                 return text.toLowerCase()
-                    .replace(/[^\w\s]/g, '') // Rimuove la punteggiatura
-                    .replace(/\s+/g, ' ')     // Sostituisce spazi multipli con uno spazio singolo
+                    .replace(/[^\w\s]/g, '')
+                    .replace(/\s+/g, ' ')
                     .trim();
             };
             
             const normStr1 = normalizeText(str1);
             const normStr2 = normalizeText(str2);
             
-            // Se entrambe le stringhe sono vuote, restituisci 100%
             if (!normStr1 && !normStr2) return 100;
             
-            // Tokenizzazione
             const tokens1 = new Set(normStr1.split(' '));
             const tokens2 = new Set(normStr2.split(' '));
             
-            // Calcolo dell'intersezione
             const intersection = new Set([...tokens1].filter(token => tokens2.has(token)));
-            
-            // Calcolo dell'unione
             const union = new Set([...tokens1, ...tokens2]);
             
-            // Calcolo dell'indice di Jaccard
-            const jaccardIndex = (intersection.size / union.size) * 100;
-            
-            return jaccardIndex;
+            return (intersection.size / union.size) * 100;
         }
         
-        // Funzione per analizzare le pagine simili
+        // Analisi pagine simili
         async function analyzeSimilarPages() {
             if (!state.pdfDoc || state.totalPages < 2) {
                 alert('Il documento deve contenere almeno 2 pagine per l\'analisi');
@@ -909,7 +1078,6 @@
             updateProgress(0);
             
             try {
-                // Estrai testo da tutte le pagine
                 const pageTexts = [];
                 
                 for (let i = 1; i <= state.totalPages; i++) {
@@ -918,18 +1086,14 @@
                     const text = textContent.items.map(item => item.str).join(' ');
                     pageTexts.push(text);
                     
-                    // Aggiorna la barra di avanzamento
                     const progress = (i / state.totalPages) * 50;
                     updateProgress(progress);
                     
                     page.cleanup();
                 }
                 
-                // Trova pagine simili
                 state.duplicatePairs = [];
                 const threshold = state.similarityThreshold;
-                
-                // Calcola il numero totale di confronti
                 const totalComparisons = (state.totalPages * (state.totalPages - 1)) / 2;
                 let comparisonsDone = 0;
                 
@@ -946,8 +1110,6 @@
                         }
                         
                         comparisonsDone++;
-                        
-                        // Aggiorna la barra di avanzamento
                         const progress = 50 + (comparisonsDone / totalComparisons) * 50;
                         updateProgress(progress);
                     }
@@ -957,13 +1119,11 @@
                 dom.duplicatePairs.textContent = state.duplicatePairs.length;
                 dom.duplicateCount.textContent = `${state.duplicatePairs.length} elementi`;
                 
-                // Abilita i controlli
-                dom.selectCol1.disabled = false;
-                dom.selectCol2.disabled = false;
-                
-                // Aggiorna l'UI
                 updateDuplicateDisplay();
                 hideLoading();
+                
+                dom.selectCol1Toggle.disabled = false;
+                dom.selectCol2Toggle.disabled = false;
                 
             } catch (error) {
                 console.error('Errore durante l\'analisi:', error);
@@ -972,20 +1132,26 @@
             }
         }
         
-        // Funzioni per l'UI
+        // Aggiornamento UI
         function updateDuplicateDisplay() {
             if (state.displayedPairs.length === 0) {
                 dom.tableBody.innerHTML = `
                     <tr class="empty-row">
-                        <td colspan="5">
+                        <td colspan="3">
                             <div class="empty-state">
-                                <i class="fas fa-check-circle"></i>
-                                <div>Nessuna pagina simile trovata</div>
+                                <span class="material-icons">check_circle</span>
+                                <div>Nessuna pagina simile trovata con la soglia attuale</div>
                             </div>
                         </td>
                     </tr>
                 `;
+                state.currentSelection = null;
                 return;
+            }
+            
+            // Se non c'è una selezione corrente o la selezione è fuori range, seleziona la prima riga
+            if (state.currentSelection === null || state.currentSelection >= state.displayedPairs.length) {
+                state.currentSelection = 0;
             }
             
             let tableHTML = '';
@@ -995,24 +1161,23 @@
                 const isPage1Marked = state.pagesToRemove.has(pair.page1);
                 const isPage2Marked = state.pagesToRemove.has(pair.page2);
                 
-                // Determina la classe CSS in base al livello di similarità
                 let similarityClass = 'similarity-low';
                 if (pair.similarity >= 90) similarityClass = 'similarity-high';
                 else if (pair.similarity >= 75) similarityClass = 'similarity-medium';
                 
                 tableHTML += `
                     <tr class="${isSelected}" data-index="${index}">
-                        <td class="checkbox-cell">
-                            <input type="checkbox" id="check-${index}-1" ${isPage1Marked ? 'checked' : ''}>
+                        <td class="page-cell">
+                            <div class="page-content">
+                                <input type="checkbox" id="check-${index}-1" class="page-checkbox" ${isPage1Marked ? 'checked' : ''}>
+                                <label for="check-${index}-1">${pair.page1}</label>
+                            </div>
                         </td>
-                        <td>
-                            <label for="check-${index}-1">${pair.page1}</label>
-                        </td>
-                        <td class="checkbox-cell">
-                            <input type="checkbox" id="check-${index}-2" ${isPage2Marked ? 'checked' : ''}>
-                        </td>
-                        <td>
-                            <label for="check-${index}-2">${pair.page2}</label>
+                        <td class="page-cell">
+                            <div class="page-content">
+                                <input type="checkbox" id="check-${index}-2" class="page-checkbox" ${isPage2Marked ? 'checked' : ''}>
+                                <label for="check-${index}-2">${pair.page2}</label>
+                            </div>
                         </td>
                         <td class="${similarityClass}">
                             ${pair.similarity}%
@@ -1026,7 +1191,7 @@
             
             dom.tableBody.innerHTML = tableHTML;
             
-            // Aggiungi gli event listener per i checkbox
+            // Aggiungi event listener per i checkbox delle pagine
             document.querySelectorAll('#tableBody input[type="checkbox"]').forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     const parts = this.id.split('-');
@@ -1044,55 +1209,171 @@
                     }
                     
                     updateStatus();
-                    updateColumnButtons();
+                    
+                    // Aggiorna immediatamente le anteprime se la riga è selezionata
+                    if (state.currentSelection === rowIndex) {
+                        updatePreviews();
+                    }
+                });
+            });
+            
+            // Aggiungi event listener per la selezione delle righe
+            document.querySelectorAll('#tableBody tr').forEach((row, index) => {
+                if (row.classList.contains('empty-row')) return;
+                
+                row.addEventListener('click', (e) => {
+                    // Non selezionare la riga se si clicca su un checkbox
+                    if (e.target.type === 'checkbox') return;
+                    
+                    state.currentSelection = index;
+                    
+                    document.querySelectorAll('#tableBody tr').forEach(tr => {
+                        tr.classList.remove('selected');
+                    });
+                    row.classList.add('selected');
+                    
                     updatePreviews();
                 });
             });
+            
+            updateColumnToggleState();
         }
         
+        // Rendering pagina PDF con supporto vettoriale
         async function renderPagePreview(pageNumber, container) {
-            if (!state.pdfDoc) return;
+            if (!state.pdfDoc) return null;
             
             try {
                 const page = await state.pdfDoc.getPage(pageNumber);
-                const viewport = page.getViewport({ scale: 1.2 });
+                const containerWidth = container.clientWidth;
+                const containerHeight = container.clientHeight;
                 
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const renderContext = {
-                    canvasContext: ctx,
-                    viewport: viewport
-                };
+                // Calcola lo scale per adattarsi al contenitore
+                const viewport = page.getViewport({ scale: 1 });
+                const scale = Math.min(
+                    containerWidth / viewport.width,
+                    containerHeight / viewport.height
+                );
                 
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
-                
-                await page.render(renderContext).promise;
-                
-                // Crea un contenitore per il canvas
-                const canvasContainer = document.createElement('div');
-                canvasContainer.className = 'canvas-container';
-                canvasContainer.appendChild(canvas);
-                
-                // Crea l'overlay per il canvas
-                const overlay = document.createElement('div');
-                overlay.className = 'preview-overlay';
-                overlay.innerHTML = '<i class="fas fa-trash-alt"></i>';
-                overlay.style.display = state.pagesToRemove.has(pageNumber) ? 'flex' : 'none';
-                
-                canvasContainer.appendChild(overlay);
-                
-                // Pulisci il contenitore e aggiungi il canvas con overlay
-                container.innerHTML = '';
-                container.appendChild(canvasContainer);
-                
-                return overlay;
+                // Opzione 1: Visualizzazione vettoriale (preferita)
+                if (window.pdfjsLib && window.pdfjsLib.version) {
+                    // Usa PDF.js per rendering vettoriale con alta qualità
+                    const scaledViewport = page.getViewport({ scale });
+                    
+                    // Crea un div per il rendering vettoriale
+                    const vectorContainer = document.createElement('div');
+                    vectorContainer.className = 'pdf-vector-container';
+                    vectorContainer.style.width = `${scaledViewport.width}px`;
+                    vectorContainer.style.height = `${scaledViewport.height}px`;
+                    vectorContainer.style.position = 'relative';
+                    vectorContainer.style.overflow = 'hidden';
+                    vectorContainer.style.borderRadius = '4px';
+                    vectorContainer.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+                    
+                    // Crea un canvas con risoluzione ultra-alta per qualità vettoriale
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Usa una risoluzione molto alta per simulare qualità vettoriale
+                    const highResScale = scale * 3; // 3x per qualità ultra-alta
+                    const highResViewport = page.getViewport({ scale: highResScale });
+                    
+                    canvas.width = highResViewport.width;
+                    canvas.height = highResViewport.height;
+                    canvas.style.width = `${scaledViewport.width}px`;
+                    canvas.style.height = `${scaledViewport.height}px`;
+                    
+                    // Configura il contesto per rendering di alta qualità
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    
+                    // Renderizza con qualità ultra-alta
+                    await page.render({
+                        canvasContext: ctx,
+                        viewport: highResViewport,
+                        enableWebGL: true,
+                        renderInteractiveForms: false
+                    }).promise;
+                    
+                    vectorContainer.appendChild(canvas);
+                    
+                    // Crea il filtro rosso (overlay) con le stesse dimensioni
+                    const overlay = document.createElement('div');
+                    overlay.className = 'preview-overlay';
+                    overlay.innerHTML = '<span class="material-icons">delete</span>';
+                    overlay.style.width = '100%';
+                    overlay.style.height = '100%';
+                    overlay.style.position = 'absolute';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    
+                    // Imposta lo stato iniziale dell'overlay
+                    const isMarked = state.pagesToRemove.has(pageNumber);
+                    overlay.style.display = isMarked ? 'flex' : 'none';
+                    if (isMarked) {
+                        overlay.classList.add('visible');
+                    }
+                    
+                    vectorContainer.appendChild(overlay);
+                    
+                    // Aggiorna il contenitore
+                    container.innerHTML = '';
+                    container.appendChild(vectorContainer);
+                    
+                    return overlay;
+                } else {
+                    // Fallback: rendering canvas tradizionale
+                    const pixelRatio = window.devicePixelRatio || 1;
+                    const renderScale = scale * Math.min(pixelRatio, 2);
+                    const scaledViewport = page.getViewport({ scale: renderScale });
+                    
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = scaledViewport.width;
+                    canvas.height = scaledViewport.height;
+                    canvas.style.width = `${viewport.width * scale}px`;
+                    canvas.style.height = `${viewport.height * scale}px`;
+                    
+                    await page.render({
+                        canvasContext: ctx,
+                        viewport: scaledViewport
+                    }).promise;
+                    
+                    const canvasContainer = document.createElement('div');
+                    canvasContainer.className = 'canvas-container';
+                    canvasContainer.style.width = `${viewport.width * scale}px`;
+                    canvasContainer.style.height = `${viewport.height * scale}px`;
+                    canvasContainer.style.position = 'relative';
+                    canvasContainer.appendChild(canvas);
+                    
+                    const overlay = document.createElement('div');
+                    overlay.className = 'preview-overlay';
+                    overlay.innerHTML = '<span class="material-icons">delete</span>';
+                    overlay.style.width = '100%';
+                    overlay.style.height = '100%';
+                    overlay.style.position = 'absolute';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    
+                    const isMarked = state.pagesToRemove.has(pageNumber);
+                    overlay.style.display = isMarked ? 'flex' : 'none';
+                    if (isMarked) {
+                        overlay.classList.add('visible');
+                    }
+                    
+                    canvasContainer.appendChild(overlay);
+                    
+                    container.innerHTML = '';
+                    container.appendChild(canvasContainer);
+                    
+                    return overlay;
+                }
                 
             } catch (error) {
                 console.error('Errore nel rendering della pagina:', error);
                 container.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
+                        <span class="material-icons">error</span>
                         <div>Errore nel caricamento</div>
                     </div>
                 `;
@@ -1100,85 +1381,92 @@
             }
         }
         
+        // Aggiornamento anteprime
         async function updatePreviews() {
-            if (state.currentSelection === null || state.displayedPairs.length === 0) {
+            if (state.displayedPairs.length === 0) {
                 dom.preview1.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-file-image"></i>
-                        <div>Seleziona una riga</div>
+                        <span class="material-icons">image</span>
+                        <div>Carica un documento e avvia l'analisi</div>
                     </div>
                 `;
                 dom.preview2.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-file-image"></i>
-                        <div>Seleziona una riga</div>
+                        <span class="material-icons">image</span>
+                        <div>Carica un documento e avvia l'analisi</div>
                     </div>
                 `;
-                dom.preview1Status.textContent = '';
-                dom.preview2Status.textContent = '';
                 return;
+            }
+            
+            // Se non c'è una selezione corrente, mostra la prima riga di default
+            if (state.currentSelection === null) {
+                state.currentSelection = 0;
             }
             
             const pair = state.displayedPairs[state.currentSelection];
             
-            // Renderizza le anteprime
+            // Forza sempre il re-rendering delle anteprime per la riga selezionata
             const overlay1 = await renderPagePreview(pair.page1, dom.preview1);
             const overlay2 = await renderPagePreview(pair.page2, dom.preview2);
             
-            // Aggiorna lo stato
+            // Aggiorna lo stato degli overlay
             const isPage1Marked = state.pagesToRemove.has(pair.page1);
             const isPage2Marked = state.pagesToRemove.has(pair.page2);
             
-            if (overlay1) overlay1.style.display = isPage1Marked ? 'flex' : 'none';
-            if (overlay2) overlay2.style.display = isPage2Marked ? 'flex' : 'none';
-            
-            dom.preview1Status.textContent = isPage1Marked ? 'Da rimuovere' : '';
-            dom.preview2Status.textContent = isPage2Marked ? 'Da rimuovere' : '';
+            if (overlay1) {
+                overlay1.style.display = isPage1Marked ? 'flex' : 'none';
+                overlay1.classList.toggle('visible', isPage1Marked);
+            }
+            if (overlay2) {
+                overlay2.style.display = isPage2Marked ? 'flex' : 'none';
+                overlay2.classList.toggle('visible', isPage2Marked);
+            }
         }
         
-        // Funzioni per la selezione delle pagine
+        // Selezione pagine
         function selectColumn(column) {
             const pages = state.displayedPairs.map(pair => pair[`page${column}`]);
             
-            // Controlla se tutte le pagine nella colonna sono già selezionate
             const allMarked = pages.every(page => state.pagesToRemove.has(page));
             
             if (allMarked) {
-                // Deseleziona tutte
                 pages.forEach(page => state.pagesToRemove.delete(page));
             } else {
-                // Seleziona tutte
                 pages.forEach(page => state.pagesToRemove.add(page));
             }
             
-            // Aggiorna l'UI
             updateDuplicateDisplay();
             updatePreviews();
             updateStatus();
-            updateColumnButtons();
-        }
-        
-        function updateColumnButtons() {
-            const pagesCol1 = state.displayedPairs.map(p => p.page1);
-            const pagesCol2 = state.displayedPairs.map(p => p.page2);
-            
-            const allCol1Marked = pagesCol1.length > 0 && pagesCol1.every(p => state.pagesToRemove.has(p));
-            const allCol2Marked = pagesCol2.length > 0 && pagesCol2.every(p => state.pagesToRemove.has(p));
-            
-            dom.selectCol1.textContent = allCol1Marked ? "Deseleziona Col. 1" : "Seleziona Col. 1";
-            dom.selectCol2.textContent = allCol2Marked ? "Deseleziona Col. 2" : "Seleziona Col. 2";
-            
-            // Aggiungi classe per stato attivo
-            dom.selectCol1.classList.toggle('active', allCol1Marked);
-            dom.selectCol2.classList.toggle('active', allCol2Marked);
         }
         
         function updateStatus() {
             dom.pagesToRemove.textContent = state.pagesToRemove.size;
             dom.exportButton.disabled = state.pagesToRemove.size === 0;
+            updateColumnToggleState();
         }
         
-        // Funzioni per l'esportazione
+        function updateColumnToggleState() {
+            if (state.displayedPairs.length === 0) {
+                dom.selectCol1Toggle.checked = false;
+                dom.selectCol2Toggle.checked = false;
+                dom.selectCol1Toggle.disabled = true;
+                dom.selectCol2Toggle.disabled = true;
+                return;
+            }
+
+            dom.selectCol1Toggle.disabled = false;
+            dom.selectCol2Toggle.disabled = false;
+
+            const pages1 = state.displayedPairs.map(pair => pair.page1);
+            const pages2 = state.displayedPairs.map(pair => pair.page2);
+
+            dom.selectCol1Toggle.checked = pages1.every(page => state.pagesToRemove.has(page));
+            dom.selectCol2Toggle.checked = pages2.every(page => state.pagesToRemove.has(page));
+        }
+        
+        // Esportazione PDF
         async function exportPDF() {
             if (state.pagesToRemove.size === 0 || !state.originalArrayBuffer) {
                 alert('Nessuna pagina selezionata per la rimozione');
@@ -1188,28 +1476,23 @@
             showLoading();
             
             try {
-                // Carica il PDF originale
                 const pdfDoc = await PDFLib.PDFDocument.load(state.originalArrayBuffer);
                 const newPdf = await PDFLib.PDFDocument.create();
                 
-                // Copia solo le pagine non selezionate per la rimozione
                 const pagesToKeep = [];
                 for (let i = 1; i <= state.totalPages; i++) {
                     if (!state.pagesToRemove.has(i)) {
-                        pagesToKeep.push(i - 1); // pdf-lib usa indici 0-based
+                        pagesToKeep.push(i - 1);
                     }
                 }
                 
-                // Copia le pagine nel nuovo documento
                 const copiedPages = await newPdf.copyPages(pdfDoc, pagesToKeep);
                 copiedPages.forEach(page => newPdf.addPage(page));
                 
-                // Salva il nuovo PDF
                 const pdfBytes = await newPdf.save();
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
                 
-                // Crea un link per il download
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = 'documento_pulito.pdf';
@@ -1227,17 +1510,15 @@
             }
         }
         
-        // Funzioni di ordinamento
+        // Ordinamento tabella
         function sortTable(column) {
             if (state.displayedPairs.length === 0) return;
             
-            // Determina la direzione di ordinamento
             const direction = state.currentSort.column === column && 
                              state.currentSort.direction === 'asc' ? 'desc' : 'asc';
             
             state.currentSort = { column, direction };
             
-            // Ordina i dati
             state.displayedPairs.sort((a, b) => {
                 const valueA = a[column];
                 const valueB = b[column];
@@ -1249,10 +1530,7 @@
                 }
             });
             
-            // Reimposta la selezione
             state.currentSelection = null;
-            
-            // Aggiorna l'UI
             updateDuplicateDisplay();
             updatePreviews();
         }
@@ -1274,11 +1552,9 @@
         
         dom.analyzeBtn.addEventListener('click', analyzeSimilarPages);
         dom.exportButton.addEventListener('click', exportPDF);
-        dom.selectCol1.addEventListener('click', () => selectColumn(1));
-        dom.selectCol2.addEventListener('click', () => selectColumn(2));
         dom.resetBtn.addEventListener('click', resetUI);
         
-        // Selezione riga della tabella
+        // Selezione riga
         dom.tableBody.addEventListener('click', (e) => {
             const row = e.target.closest('tr');
             if (!row || row.classList.contains('empty-row')) return;
@@ -1286,7 +1562,6 @@
             const index = parseInt(row.dataset.index);
             state.currentSelection = index;
             
-            // Aggiorna la visualizzazione della tabella
             document.querySelectorAll('#tableBody tr').forEach(tr => {
                 tr.classList.remove('selected');
             });
@@ -1311,7 +1586,6 @@
             
             state.currentSelection = newIndex;
             
-            // Aggiorna la selezione nella tabella
             document.querySelectorAll('#tableBody tr').forEach(tr => {
                 tr.classList.remove('selected');
             });
@@ -1332,10 +1606,9 @@
             });
         });
         
-        // Simula icone FontAwesome
-        document.head.innerHTML += `
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-        `;
+        // Toggle di selezione colonne
+        dom.selectCol1Toggle.addEventListener('change', () => selectColumn(1));
+        dom.selectCol2Toggle.addEventListener('change', () => selectColumn(2));
         
         // Inizializza l'app
         resetUI();
